@@ -21,6 +21,7 @@ exports.makestore = async (req,res,next)=>{
             const ShopCounter = req.body.ShopCounter;
             const countertime = req.body.countertime;
             const avgtime = req.body.avgtime;
+            const queueassign = req.body.queueassign;
             newshop = new shop({
                 name:name,
                 Address:Address,
@@ -29,7 +30,8 @@ exports.makestore = async (req,res,next)=>{
                 counter:counter,
                 ShopCounter:ShopCounter,
                 countertime:countertime,
-                avgtime:avgtime
+                avgtime:avgtime,
+                queueassign:queueassign
             })
             await newshop.save();
             res.json("New Shop");
@@ -53,13 +55,24 @@ exports.adduser = async ( req,res,next)=>{
             console.log('no shop exist');
         }
         else{
-            var mini = result.ShopCounter[0];
-            console.log(mini);
+            var mini = result.ShopCounter[0]*result.avgtime[0];
             var counter = 0 , i;
-            for(i = 0; i < result.counter ; i++){
-                if(result.ShopCounter[i]<mini){
-                    mini = result.ShopCounter[i];
-                    counter = i;
+            let tt = 1;
+            for(var j = 0 ; j< result.counter ; j++ ){
+                if(result.ShopCounter[j]*result.avgtime[j]==0){
+                    result.avgtime[j]++;
+                    counter = j;
+                    console.log(j);
+                    tt = 0;
+                }
+            }
+            await result.save();
+            if(tt){
+                for(i = 0; i < result.counter ; i++){
+                    if(result.ShopCounter[i]*result.avgtime[i]<mini){
+                        mini = result.ShopCounter[i]*result.avgtime[i];
+                        counter = i;
+                    }
                 }
             }
             result.ShopCounter[counter]++;
