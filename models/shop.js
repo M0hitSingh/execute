@@ -26,6 +26,9 @@ const shop = new schema({
   countertime:{
     type:Array
   },
+  avgtime:{
+    type:Array
+  },
   queue : {
       type:Array,
       require:true

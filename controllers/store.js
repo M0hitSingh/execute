@@ -19,13 +19,17 @@ exports.makestore = async (req,res,next)=>{
             const latti = req.body.latti;
             const counter = req.body.counter;
             const ShopCounter = req.body.ShopCounter;
+            const countertime = req.body.countertime;
+            const avgtime = req.body.avgtime;
             newshop = new shop({
                 name:name,
                 Address:Address,
                 long:long,
                 latti:latti,
                 counter:counter,
-                ShopCounter:ShopCounter
+                ShopCounter:ShopCounter,
+                countertime:countertime,
+                avgtime:avgtime
             })
             await newshop.save();
             res.json("New Shop");
@@ -79,14 +83,28 @@ exports.adduser = async ( req,res,next)=>{
 exports.removeuser = async (req,res,next)=>{
     try{
         const shopid = req.body.shopid;
-        const userid = req.body.userid;
         const counter = req.body.counter-1;
+        let time = req.body.time;
         result = await shop.findOne({_id:shopid});
         if(!result){
             res.json('no shop exist');
             console.log('no shop exist');
         }
         else{
+            if(result.countertime[counter]==0){
+                result.countertime[counter] = time;
+                await result.save();
+            }
+            else{
+                if(result.avgtime[counter]==0){
+                    result.avgtime[counter] = time - result.countertime[counter];
+                    await result.save();
+                }else{
+                    result.avgtime[counter] = (result.avgtime[counter] + (time - result.countertime[counter]))/2
+                }
+                result.countertime[counter] = time;
+                await result.save();
+            }
             if(result.queue.length){
                 for(var i = 0; i < result.queue.length; i++){
                     if(result.queue[i].counter == counter){
