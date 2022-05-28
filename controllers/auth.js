@@ -37,7 +37,7 @@ exports.otp = async (req, res, next) => {
       throw error;
     }
 
-    const otp = otpGenerator.generate(6, {
+    const otp = otpGenerator.generate(4, {
       lowerCaseAlphabets: false,
       upperCaseAlphabets: false,
       specialChars: false
@@ -60,12 +60,50 @@ exports.otp = async (req, res, next) => {
     next(err);
   }
 }
-
+exports.details = async (req,res , next)=>{
+  try{
+    const {email , password , fullname  , mobileno , gender , role } = req.body;
+  const hashedPassword = await bcrypt.hash(password, 12);
+      let newUser;
+      if (role == false)
+      {
+          newUser = new Store({
+              email: email,
+              password: hashedPassword,
+              fullname:fullname,
+              mobileno:mobileno,
+              gender:gender
+            })
+            await newUser.save();
+    }
+    else
+    {
+      newUser = new User({
+        email: email,
+        password: hashedPassword,
+        fullname:fullname,
+        mobileno:mobileno,
+        gender:gender
+    });
+  }
+    await newUser.save();
+    return res.status(201).json("welcome");
+  }
+  catch(err){
+    if (!err.statusCode) {
+      err.statusCode = 500;
+    }
+    next(err);
+  }
+}
 exports.otpVerification = async (req, res, next) => {
   try {
-    const { email, otp, password, confirmPass, name, mobileno, gender, role, } = req.body;
-    const userInDb = await User.findOne({ email: email });
-    const storeInDb = await Store.findOne({ email: email });
+    const { email, otp, password, confirmPass} = req.body;
+    const userInDb = await User.findOne({email:email });
+    const storeInDb = await Store.findOne({ email:email });
+    console.log(email)
+    console.log(userInDb);
+    console.log(storeInDb);
     if (userInDb||storeInDb)
         return res.status(401).send('Already registered.');
 
@@ -80,45 +118,20 @@ exports.otpVerification = async (req, res, next) => {
       err.statusCode = 420;
       throw err;
     }
-    await newotp.remove();
-    if (password != confirmPass) {
-      const error = new Error("Passwords do not match");
-      error.statusCode = 422;
-      throw error;
-    }
-    const hashedPassword = await bcrypt.hash(password, 12);
-    let newUser;
-    if (role == "Store")
-    {
-      newUser = new Store({
-        email: email,
-        password: hashedPassword,
-        fullname: name,
-        mobileno: mobileno,
-        gender: gender
-      })
-      await newUser.save();
-    }
-    else
-    {
-      newUser = new User({
-       email: email,
-       password: hashedPassword,
-       fullname: name,
-       mobileno: mobileno,
-       gender: gender
-    });
-    await newUser.save();
-  }
-    const accesstoken = jwt.sign({ email: email, userId: newUser._id }, process.env.ACCESS_TOKEN_KEY, { expiresIn: '1h' });
-    const refreshtoken = jwt.sign({ email: email, userId: newUser._id }, process.env.REFRESH_TOKEN_KEY, { expiresIn: "30d" });
-    const token = new Token({
-      email: email,
-      token: refreshtoken
-    })
-    await token.save();
-    return res.status(200).json({ message: "successfully registered", access_token: accesstoken, refresh_token: refreshtoken });
-  }
+
+      
+  // }
+  //   const accesstoken = jwt.sign({ email: email, userId: newUser._id }, process.env.ACCESS_TOKEN_KEY, { expiresIn: '1h' });
+  //   const refreshtoken = jwt.sign({ email: email, userId: newUser._id }, process.env.REFRESH_TOKEN_KEY, { expiresIn: "30d" });
+  //   const token = new Token({
+  //     email: email,
+  //     token: refreshtoken
+  //   })
+  //   await token.save();
+  //   return res.status(200).json({ message: "successfully registered", access_token: accesstoken, refresh_token: refreshtoken });
+  await newotp.remove();
+  return res.status(200).json('otp verified');
+}
   catch (err) {
     if (!err.statusCode) {
       err.statusCode = 500;
@@ -129,19 +142,9 @@ exports.otpVerification = async (req, res, next) => {
 
 exports.login = async (req, res, next) => {
   try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(422).json({ Error: "Validation Failed" });
-    }
     const { email, password,isStore } = req.body;
-    var validemail = emailregex.test(email);
-    if (!validemail) {
-      const error = new Error('Please enter a valid email');
-      error.statusCode = 422;
-      throw error;
-    }
     let user;
-    if(isStore == false){
+    if(isStore){
       user = await User.findOne({ email: email });
 
       if (!user) {
@@ -155,6 +158,7 @@ exports.login = async (req, res, next) => {
         error.statusCode = 403;
         throw error;
       }
+      return res.status(201).json('logged in');
     }
     else{
       user = await Store.findOne({ email: email });
@@ -170,15 +174,8 @@ exports.login = async (req, res, next) => {
         error.statusCode = 403;
         throw error;
       }
+      return res.status(201).json('logged in');
     }
-    const accesstoken = jwt.sign({ email: email, userId: user._id }, process.env.ACCESS_TOKEN_KEY, { expiresIn: '1h' });
-    const refreshtoken = jwt.sign({ email: email, userId: user._id }, process.env.REFRESH_TOKEN_KEY, { expiresIn: "30d" });
-    const token = new Token({
-      email: email,
-      token: refreshtoken
-    })
-    await token.save();
-    return res.status(200).json({ message: "LoggedIn", email: email, access_token: accesstoken, refresh_token: refreshtoken });
 
   }
   catch (err) {

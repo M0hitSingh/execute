@@ -10,7 +10,7 @@ const otpSchema = new schema({
     type: String,
     required: true,
   },
-  createdAt: { type: Date, expires: "2m", default: Date.now },
+  createdAt: { type: Date, expires: "5m", default: Date.now },
 });
 
 module.exports = mongoose.model("otp",otpSchema);

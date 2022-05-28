@@ -15,20 +15,12 @@ const userSchema = new schema({
     require:true
   },
   mobileno:{
-    type: Number,
+    type: String,
     require:true
   },
   gender: String,
   image: String,
-  isStore:{
-    type: Boolean,
-    require: true,
-    default:false
-  },
-  passVerify:{
-    type: Boolean,
-    default: false
-  }
+
 })
 
 module.exports = mongoose.model("users",userSchema);
