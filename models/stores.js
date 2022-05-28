@@ -2,7 +2,6 @@ const mongoose = require("mongoose");
 const schema = mongoose.Schema;
 
 const storeSchema = new schema({
- 
   details:{
     type: schema.Types.ObjectId,
     require:true,
@@ -15,5 +14,4 @@ const storeSchema = new schema({
   },
 
 })
-
 module.exports = mongoose.model("stores",storeSchema);

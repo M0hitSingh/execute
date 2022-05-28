@@ -2,6 +2,7 @@ const express = require("express");
 const mongoose = require("mongoose"); 
 const dotenv = require("dotenv");
 const authRoutes = require("./routes/auth");
+const storeroutes = require('./routes/store');
 const passport = require("passport");
 const cookieSession = require('cookie-session');
 require('./passport-setup');
@@ -33,8 +34,14 @@ app.get('/auth/google/callback',passport.authenticate("google",{failureRedirect:
     res.json("welcome"); 
   }
 );
-//micro-services
+
+
+
+
 app.use("/auth",authRoutes);
+app.use("/store",storeroutes);
+
+
 app.use((error, req, res, next) => {
   // console.log(error);
   const status = error.statusCode || 500;
