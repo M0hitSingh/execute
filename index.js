@@ -5,6 +5,7 @@ const authRoutes = require("./routes/auth");
 const passport = require("passport");
 const cookieSession = require('cookie-session');
 require('./passport-setup');
+const proxy = require('express-http-proxy');
 
 dotenv.config();
 const app = express();
@@ -24,7 +25,7 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use('/auth',authRoutes);
+// app.use('/auth',authRoutes);
 app.get("/failed",(req,res)=>res.json("failed to login"));
 app.get('/google',passport.authenticate('google',{scope:['profile','email']}));
 app.get('/auth/google/callback',passport.authenticate("google",{failureRedirect:'/failed'}),
@@ -32,7 +33,8 @@ app.get('/auth/google/callback',passport.authenticate("google",{failureRedirect:
     res.json("welcome"); 
   }
 );
-
+//micro-services
+app.use("/auth",authRoutes);
 app.use((error, req, res, next) => {
   // console.log(error);
   const status = error.statusCode || 500;
