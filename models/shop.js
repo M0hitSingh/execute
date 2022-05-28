@@ -10,6 +10,12 @@ const shop = new schema({
     type: String,
     required: true,
   },
+  opentime : {
+    type:String
+  },
+  closetime :{
+    type:String
+  },
   long:{
       type:Number,
   },

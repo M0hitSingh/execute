@@ -22,6 +22,8 @@ exports.makestore = async (req,res,next)=>{
             const countertime = req.body.countertime;
             const avgtime = req.body.avgtime;
             const queueassign = req.body.queueassign;
+            const opentime = req.body.opentime;
+            const closetime = req.body.closetime;
             newshop = new shop({
                 name:name,
                 Address:Address,
@@ -31,7 +33,9 @@ exports.makestore = async (req,res,next)=>{
                 ShopCounter:ShopCounter,
                 countertime:countertime,
                 avgtime:avgtime,
-                queueassign:queueassign
+                queueassign:queueassign,
+                opentime:opentime,
+                closetime:closetime
             })
             await newshop.save();
             res.json("New Shop");
@@ -83,7 +87,7 @@ exports.adduser = async ( req,res,next)=>{
             }
             result.queue.push({_id:userid,counter});
             await result.save();
-            res.json('user joined the queue');
+            res.json({counter:counter});
         }
     }
     catch(err){
@@ -130,6 +134,38 @@ exports.removeuser = async (req,res,next)=>{
             }
             res.json('user removed');
         }
+    }
+    catch(err){
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        next(err);
+    }
+}
+exports.nearby = async (req,res,next)=>{
+    try{
+        const long = req.body.long;
+        const latti = req.body.latti;
+        const result = await shop.find();
+        var arr=[];
+        for(var i = 0 ; i <  result.length ;i++){
+            arr.push({dist:Math.abs(long-result[i].long )+ Math.abs(latti - result[i].latti) , shop:result[i]});
+        }
+        arr.sort((a,b) => (a.dist > b.dist) ? 1 : ((b.dist > a.dist) ? -1 : 0))
+        res.status(201).json(arr);
+    }
+    catch(err){
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        next(err);
+    }
+}
+exports.details = async (req,res,next)=>{
+    try{
+        const shopid = req.params.id;
+        result = await shop.findById(shopid);
+        res.status(201).json(result);
     }
     catch(err){
         if (!err.statusCode) {

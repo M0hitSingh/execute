@@ -11,6 +11,7 @@ const Store = require("../models/stores");
 const Otp = require("../models/otp");
 const mail = require("../utils/sendemail");
 const Token = require("../models/token");
+const { use } = require("passport");
 
 var emailregex = /^[-!#$%&'*+\/0-9=?A-Z^_a-z{|}~](\.?[-!#$%&'*+\/0-9=?A-Z^_a-z`{|}~])*@[a-zA-Z0-9](-*\.?[a-zA-Z0-9])*\.[a-zA-Z](-?[a-zA-Z0-9])+$/
 exports.otp = async (req, res, next) => {
@@ -158,7 +159,7 @@ exports.login = async (req, res, next) => {
         error.statusCode = 403;
         throw error;
       }
-      return res.status(201).json('logged in');
+      return res.status(201).json(user);
     }
     else{
       user = await Store.findOne({ email: email });
@@ -174,7 +175,7 @@ exports.login = async (req, res, next) => {
         error.statusCode = 403;
         throw error;
       }
-      return res.status(201).json('logged in');
+      return res.status(201).json(user);
     }
 
   }
