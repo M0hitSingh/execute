@@ -38,7 +38,9 @@ exports.makestore = async (req,res,next)=>{
                 closetime:closetime
             })
             await newshop.save();
-            res.json("New Shop");
+            result.shopid = newshop._id;
+            await result.save();
+            res.json(newshop);
         }
     }
     catch(err){
@@ -150,7 +152,6 @@ exports.nearby = async (req,res,next)=>{
         const latti = req.body.latti;
         const result = await shop.find();
         var arr=[];
-        var res= [];
         for(var i = 0 ; i <  result.length ;i++){
             arr.push({dist:Math.abs(long-result[i].long )+ Math.abs(latti - result[i].latti) , shop:result[i]});
         }

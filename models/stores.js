@@ -18,6 +18,9 @@ const storeSchema= new schema({
     type: String,
     require:true
   },
+  shopid :{
+    type:String
+  },
   gender: String,
   image: String,
 
