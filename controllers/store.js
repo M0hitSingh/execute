@@ -3,7 +3,27 @@ const stores = require("../models/stores");
 const shop = require("../models/shop");
 var mongoose = require('mongoose');
 const users = require("../models/users");
-
+exports.checkstore = async (req , res ,next )=>{
+    try{
+        const userid = req.body.userid;
+        const result  = await  stores.find({_id:userid});
+        console.log(result[0].shopid)
+        if(!result[0].shopid){
+            mongoose.Types.ObjectId.isValid(result[0].shopid);
+            const doc = await shop.findById(result[0].shopid);
+            res.json(doc);
+        }
+        else{
+            res.status(301);
+        }
+    }
+    catch(err){
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        next(err);
+    }
+}
 exports.makestore = async (req,res,next)=>{
     try{
         mongoose.Types.ObjectId.isValid(req.params.id);
