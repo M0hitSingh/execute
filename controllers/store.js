@@ -53,6 +53,7 @@ exports.adduser = async ( req,res,next)=>{
     try{
         const shopid = req.body.shopid;
         const userid = req.body.userid;
+        const time = req.body.time;
         result = await shop.findOne({_id:shopid});
         if(!result){
             res.json('no shop exist');
@@ -80,12 +81,13 @@ exports.adduser = async ( req,res,next)=>{
                 }
             }
             result.ShopCounter[counter]++;
+            var pos =  result.ShopCounter[counter]
             ans = await users.findById(userid);
             if(!ans){
                 console.log('no user exist')
                 return res.json("no user exist");
             }
-            result.queue.push({_id:userid,counter});
+            result.queue.push({_id:userid,counter,time,pos});
             await result.save();
             res.json({counter:counter});
         }
@@ -132,7 +134,7 @@ exports.removeuser = async (req,res,next)=>{
                     }
                 }
             }
-            res.json('user removed');
+            res.status(201).json('user removed');
         }
     }
     catch(err){
@@ -148,6 +150,7 @@ exports.nearby = async (req,res,next)=>{
         const latti = req.body.latti;
         const result = await shop.find();
         var arr=[];
+        var res= [];
         for(var i = 0 ; i <  result.length ;i++){
             arr.push({dist:Math.abs(long-result[i].long )+ Math.abs(latti - result[i].latti) , shop:result[i]});
         }
@@ -166,6 +169,30 @@ exports.details = async (req,res,next)=>{
         const shopid = req.params.id;
         result = await shop.findById(shopid);
         res.status(201).json(result);
+    }
+    catch(err){
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        next(err);
+    }
+}
+exports.joinedqueue = async(req,res,next)=>{
+    try{
+        const userid = req.body.userid;
+        result = await shop.find();
+        console.log(result.length);
+        var arr=[];
+        for(var i = 0 ; i < result.length ; i++){
+            for(var j = 0 ; j < result[i].queue.length ; j++){
+                if(result[i].queue[j]._id== userid){
+                    var cnt = result[i].queue[j].counter;
+                    var po = result[i].queue[j].pos;
+                    arr.push({_id:result[i]._id ,timeleft:(result[i].queue[j].time + po*result[i].avgtime[cnt])});
+                }
+            }
+        }
+        res.status(201).json(arr);
     }
     catch(err){
         if (!err.statusCode) {

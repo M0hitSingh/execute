@@ -88,7 +88,7 @@ exports.details = async (req,res , next)=>{
     });
   }
     await newUser.save();
-    return res.status(201).json("welcome");
+    return res.status(201).json(newUser);
   }
   catch(err){
     if (!err.statusCode) {
