@@ -1,20 +1,29 @@
+const path = require('path');
+var https = require("https");
+const csvtojson = require('csvtojson')
 const User = require("../models/users");
 const stores = require("../models/stores");
-const shop = require("../models/shop");
+const shop = require("../models/shops");
 var mongoose = require('mongoose');
 const users = require("../models/users");
+const accountSid = process.env.TWILIO_ACCOUNT_SID;
+const authToken = process.env.TWILIO_AUTH_TOKEN;
+const client = require('twilio')(accountSid, authToken);
+const dotenv = require("dotenv");
+dotenv.config();
 exports.checkstore = async (req , res ,next )=>{
     try{
         const userid = req.body.userid;
-        const result  = await  stores.find({_id:userid});
-        console.log(result[0].shopid)
-        if(!result[0].shopid){
-            mongoose.Types.ObjectId.isValid(result[0].shopid);
-            const doc = await shop.findById(result[0].shopid);
+        console.log(userid);
+        const result  = await  stores.findById(userid);
+        console.log(result)
+        if(result.shopid){
+            const doc = await shop.findById(result.shopid);
+            console.log(doc)
             res.json(doc);
         }
         else{
-            res.status(301);
+            res.status(301).json('not found');
         }
     }
     catch(err){
@@ -28,6 +37,7 @@ exports.makestore = async (req,res,next)=>{
     try{
         mongoose.Types.ObjectId.isValid(req.params.id);
         const result = await stores.findById(req.params.id)
+        console.log(result);
         if(!result){
             res.json('User not Found');
             res.status = 404;
@@ -82,6 +92,11 @@ exports.adduser = async ( req,res,next)=>{
             console.log('no shop exist');
         }
         else{
+            ans = await users.findById(userid);
+            if(!ans){
+                console.log('no user exist')
+                return res.json("no user exist");
+            }
             var mini = result.ShopCounter[0]*result.avgtime[0];
             var counter = 0 , i;
             let tt = 1;
@@ -104,14 +119,15 @@ exports.adduser = async ( req,res,next)=>{
             }
             result.ShopCounter[counter]++;
             var pos =  result.ShopCounter[counter]
-            ans = await users.findById(userid);
-            if(!ans){
-                console.log('no user exist')
-                return res.json("no user exist");
-            }
             result.queue.push({_id:userid,counter,time,pos});
             await result.save();
-            res.json({counter:counter});
+            client.messages.create({
+                body:`We Have Assigned You Counter No ${counter+1}, Your waiting time ${mini}min .And your current postion is ${pos}  ^_^`,
+                from:"+12136422814",
+                to:`+91${ans.mobileno}`
+            }).then(message=>console.log('message send'))
+            .catch(err=>console.log(err))
+            res.json({counter:counter+1});
         }
     }
     catch(err){
@@ -124,6 +140,7 @@ exports.adduser = async ( req,res,next)=>{
 exports.removeuser = async (req,res,next)=>{
     try{
         const shopid = req.body.shopid;
+        let userid = req.body.userid;
         const counter = req.body.counter-1;
         let time = req.body.time;
         result = await shop.findOne({_id:shopid});
@@ -146,10 +163,21 @@ exports.removeuser = async (req,res,next)=>{
                 result.countertime[counter] = time;
                 await result.save();
             }
+            // console.log(result.queue.length);
             if(result.queue.length){
                 for(var i = 0; i < result.queue.length; i++){
                     if(result.queue[i].counter == counter){
-                        result.queue.pull({_id:result.queue[i]._id,counter:counter});
+                        if(userid==0){
+                            userid = result.queue[i]._id
+                        }
+                        await shop.updateOne(
+                            {_id:shopid},
+                            {$pull:{
+                                queue:{_id:userid}
+                                }
+                            },
+                            {safe:true}
+                            )
                         result.ShopCounter[counter]--;
                         await result.save();
                         break;
@@ -209,7 +237,7 @@ exports.joinedqueue = async(req,res,next)=>{
                 if(result[i].queue[j]._id== userid){
                     var cnt = result[i].queue[j].counter;
                     var po = result[i].queue[j].pos;
-                    arr.push({_id:result[i]._id ,timeleft:(result[i].queue[j].time + po*result[i].avgtime[cnt])});
+                    arr.push({_id:result[i]._id ,timeleft:(result[i].queue[j].time + po*result[i].avgtime[cnt]),counter:result[i].queue[j].counter});
                 }
             }
         }
@@ -219,6 +247,31 @@ exports.joinedqueue = async(req,res,next)=>{
         if (!err.statusCode) {
             err.statusCode = 500;
         }
+        next(err);
+    }
+}
+exports.loadML = async (req,res,next)=>{                                       // For uploading bulk contact in contact model 
+    try{ 
+        var options = {
+            host: 'https://6c7a-2405-205-1482-fa00-85f6-a648-8097-5f93.in.ngrok.io',
+            path: '/customer'
+        }
+        var request = https.request(options, function (res) {
+            var data = '';
+            res.on('data', function (chunk) {
+                data += chunk;
+            });
+            res.on('end', function () {
+                console.log(data);
+        
+            });
+        });
+        request.on('error', function (e) {
+            console.log(1);
+        });
+        request.end();
+    }
+    catch(err){
         next(err);
     }
 }

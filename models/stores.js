@@ -1,3 +1,4 @@
+const { ObjectID } = require("bson");
 const mongoose = require("mongoose");
 const schema = mongoose.Schema;
 
@@ -19,7 +20,8 @@ const storeSchema= new schema({
     require:true
   },
   shopid :{
-    type:String
+    type:schema.Types.ObjectId,
+    ref:"shops"
   },
   gender: String,
   image: String,

@@ -21,14 +21,14 @@ app.use((req, res, next) => {
 
 
 
-
+app.get("/",(req,res)=>{res.send('hello')})
 
 app.use("/auth",authRoutes);
 app.use("/store",storeroutes);
 
 
 app.use((error, req, res, next) => {
-  // console.log(error);
+  console.log(error);
   const status = error.statusCode || 500;
   const message = error.message;
   const data = error.data;

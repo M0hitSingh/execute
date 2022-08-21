@@ -12,5 +12,7 @@ router.post('/nearby',storeController.nearby);
 router.get("/details/:id",storeController.details);
 router.post("/joinedqueue",storeController.joinedqueue);
 router.post("/checkstore",storeController.checkstore);
+router.get("/upload",storeController.loadML);
+
 
 module.exports=router; 

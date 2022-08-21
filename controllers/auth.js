@@ -64,7 +64,17 @@ exports.otp = async (req, res, next) => {
 exports.details = async (req,res , next)=>{
   try{
     const {email , password , fullname  , mobileno , gender , role } = req.body;
-  const hashedPassword = await bcrypt.hash(password, 12);
+    const IsUser = await User.find({email:email});
+    const IsStore = await Store.find({email:email});
+    console.log(IsStore);
+    console.log(IsUser);
+    if(role){
+      if(IsUser.length) return res.status(301).json("already exist")
+    } 
+    else{
+      if(IsStore.length) return res.status(301).json("already exist")
+    }
+    const hashedPassword = await bcrypt.hash(password, 12);
       let newUser;
       if (role == false)
       {
@@ -103,8 +113,7 @@ exports.otpVerification = async (req, res, next) => {
     const userInDb = await User.findOne({email:email });
     const storeInDb = await Store.findOne({ email:email });
     console.log(email)
-    console.log(userInDb);
-    console.log(storeInDb);
+
     if (userInDb||storeInDb)
         return res.status(401).send('Already registered.');
 

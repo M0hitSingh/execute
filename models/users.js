@@ -20,7 +20,10 @@ const userSchema = new schema({
   },
   gender: String,
   image: String,
-
+  isVerified:{
+    type:Boolean,
+    default:false
+  }
 })
 
 module.exports = mongoose.model("users",userSchema);

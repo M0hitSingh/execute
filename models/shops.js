@@ -40,4 +40,4 @@ const shop = new schema({
       require:true
   }
 });
-module.exports = mongoose.model("shop",shop);
+module.exports = mongoose.model("shops",shop);
