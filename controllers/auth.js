@@ -115,7 +115,7 @@ exports.otpVerification = async (req, res, next) => {
     console.log(email)
 
     if (userInDb||storeInDb)
-        return res.status(401).send('Already registered.');
+      return res.status(401).send('Already registered.');
 
     const newotp = await Otp.findOne({ email: email });
     if (!newotp) {

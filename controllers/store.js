@@ -6,9 +6,7 @@ const stores = require("../models/stores");
 const shop = require("../models/shops");
 var mongoose = require('mongoose');
 const users = require("../models/users");
-const accountSid = process.env.TWILIO_ACCOUNT_SID;
-const authToken = process.env.TWILIO_AUTH_TOKEN;
-const client = require('twilio')(accountSid, authToken);
+
 const dotenv = require("dotenv");
 dotenv.config();
 exports.checkstore = async (req , res ,next )=>{
@@ -121,12 +119,7 @@ exports.adduser = async ( req,res,next)=>{
             var pos =  result.ShopCounter[counter]
             result.queue.push({_id:userid,counter,time,pos});
             await result.save();
-            client.messages.create({
-                body:`We Have Assigned You Counter No ${counter+1}, Your waiting time ${mini}min .And your current postion is ${pos}  ^_^`,
-                from:"+12136422814",
-                to:`+91${ans.mobileno}`
-            }).then(message=>console.log('message send'))
-            .catch(err=>console.log(err))
+            
             res.json({counter:counter+1});
         }
     }
